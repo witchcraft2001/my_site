@@ -1,0 +1,13 @@
+---
+import AppDetailPage from '../../components/pages/AppDetailPage.astro';
+import { localizedEntries } from '../../lib/collections';
+
+export async function getStaticPaths() {
+  const apps = await localizedEntries('apps', 'ru');
+  return apps.map(({ slug }) => ({ params: { id: slug } }));
+}
+
+const { id } = Astro.params;
+---
+
+<AppDetailPage locale="ru" slug={id!} />

@@ -1,0 +1,54 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import { getEntry } from 'astro:content';
+import NewsList from '../NewsList.astro';
+import { localizedEntries } from '../../lib/collections';
+import { localePath, type Locale } from '../../lib/i18n';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+
+const i18nEntry = await getEntry('i18n', locale);
+const t = (key: string) => (i18nEntry?.data as Record<string, string> | undefined)?.[key] ?? key;
+
+const news = await localizedEntries('news', locale);
+
+const pageTitle = locale === 'ru' ? 'Главная' : 'Home';
+const heroTitle = 'D.Mikhalchenkov';
+const tagline =
+  locale === 'ru'
+    ? 'Программы для Android и Sprinter (ZX), документация проектов и CV'
+    : 'Apps for Android and Sprinter (ZX), project documentation, and a CV';
+---
+
+<StarlightPage
+  frontmatter={{
+    title: pageTitle,
+    template: 'splash',
+    hero: {
+      title: heroTitle,
+      tagline,
+      actions: [
+        { text: t('site.apps.title'), link: localePath(locale, 'apps/'), variant: 'primary' },
+        { text: t('site.docs.title'), link: localePath(locale, 'docs/sprinter-manual/introduction/'), variant: 'minimal' },
+      ],
+    },
+  }}
+  hasSidebar={false}
+>
+  <section class="home-news">
+    <h2>{t('site.home.newsTitle')}</h2>
+    <NewsList items={news} locale={locale} />
+  </section>
+</StarlightPage>
+
+<style>
+  .home-news {
+    max-width: 60rem;
+    margin: 0 auto;
+    padding: 0 1rem 3rem;
+  }
+</style>

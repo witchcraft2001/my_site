@@ -1,0 +1,59 @@
+---
+import { render } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+import type { Locale } from '../lib/i18n';
+
+interface Props {
+  items: { slug: string; entry: CollectionEntry<'news'>; isFallback: boolean }[];
+  locale: Locale;
+}
+
+const { items, locale } = Astro.props;
+const sorted = [...items].sort(
+  (a, b) => b.entry.data.date.getTime() - a.entry.data.date.getTime(),
+);
+const rendered = await Promise.all(
+  sorted.map(async ({ entry }) => ({ entry, Content: (await render(entry)).Content })),
+);
+const formatter = new Intl.DateTimeFormat(locale === 'ru' ? 'ru-RU' : 'en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+---
+
+<ul class="news-list">
+  {
+    rendered.map(({ entry, Content }) => (
+      <li>
+        <time datetime={entry.data.date.toISOString()}>{formatter.format(entry.data.date)}</time>
+        <h3>{entry.data.title}</h3>
+        <Content />
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .news-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .news-list li {
+    border-left: 2px solid var(--sl-color-hairline);
+    padding-left: 1rem;
+  }
+  .news-list time {
+    display: block;
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-3);
+  }
+  .news-list h3 {
+    margin: 0.15rem 0 0.35rem;
+    font-size: var(--sl-text-lg);
+  }
+</style>

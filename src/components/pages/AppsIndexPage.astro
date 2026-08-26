@@ -1,0 +1,130 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import { getEntry } from 'astro:content';
+import AppCard from '../AppCard.astro';
+import { localizedEntries } from '../../lib/collections';
+import type { Locale } from '../../lib/i18n';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+
+const i18nEntry = await getEntry('i18n', locale);
+const t = (key: string) => (i18nEntry?.data as Record<string, string> | undefined)?.[key] ?? key;
+
+const apps = (await localizedEntries('apps', locale)).sort(
+  (a, b) => a.entry.data.order - b.entry.data.order || a.entry.data.name.localeCompare(b.entry.data.name),
+);
+
+const platforms = ['android', 'sprinter'] as const;
+const counts = Object.fromEntries(
+  platforms.map((p) => [p, apps.filter(({ entry }) => entry.data.platform === p).length]),
+);
+const platformLabels: Record<(typeof platforms)[number], string> = {
+  android: 'Android',
+  sprinter: 'Sprinter',
+};
+
+const title = t('site.apps.title');
+---
+
+<StarlightPage frontmatter={{ title }}>
+  <div class="apps-filter" role="group" aria-label={title}>
+    <button type="button" class="chip" data-filter="all" aria-pressed="true">
+      {t('site.apps.filterAll')} <span class="count">{apps.length}</span>
+    </button>
+    {
+      platforms.map((p) => (
+        <button type="button" class="chip" data-filter={p} aria-pressed="false">
+          {platformLabels[p]} <span class="count">{counts[p]}</span>
+        </button>
+      ))
+    }
+  </div>
+
+  <div class="apps-grid">
+    {
+      apps.map(({ entry, slug }) => (
+        <AppCard app={entry} slug={slug} locale={locale} t={t} />
+      ))
+    }
+  </div>
+</StarlightPage>
+
+<style>
+  .apps-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .chip {
+    font: inherit;
+    font-size: var(--sl-text-sm);
+    border: 1px solid var(--sl-color-hairline);
+    background: var(--sl-color-bg-nav);
+    color: var(--sl-color-gray-2);
+    border-radius: 999px;
+    padding: 0.35rem 0.9rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .chip .count {
+    font-size: var(--sl-text-xs);
+    color: var(--sl-color-gray-3);
+  }
+  .chip[aria-pressed='true'] {
+    background: var(--sl-color-accent);
+    border-color: var(--sl-color-accent);
+    color: var(--sl-color-black);
+  }
+  .chip[aria-pressed='true'] .count {
+    color: inherit;
+  }
+  .apps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+    gap: 1rem;
+  }
+</style>
+
+<script>
+  const group = document.querySelector<HTMLElement>('.apps-filter');
+  const cards = Array.from(document.querySelectorAll<HTMLElement>('.apps-grid [data-platform]'));
+  const chips = Array.from(document.querySelectorAll<HTMLButtonElement>('.chip'));
+
+  function applyFilter(filter: string) {
+    for (const card of cards) {
+      card.hidden = filter !== 'all' && card.dataset.platform !== filter;
+    }
+    for (const chip of chips) {
+      chip.setAttribute('aria-pressed', String(chip.dataset.filter === filter));
+    }
+  }
+
+  function filterFromHash(): string {
+    const hash = window.location.hash.replace('#', '');
+    return chips.some((c) => c.dataset.filter === hash) ? hash : 'all';
+  }
+
+  group?.addEventListener('click', (event) => {
+    const target = (event.target as HTMLElement).closest<HTMLButtonElement>('.chip');
+    if (!target) return;
+    const filter = target.dataset.filter ?? 'all';
+    applyFilter(filter);
+    const url = new URL(window.location.href);
+    if (filter === 'all') {
+      url.hash = '';
+    } else {
+      url.hash = filter;
+    }
+    history.replaceState(null, '', url);
+  });
+
+  applyFilter(filterFromHash());
+  window.addEventListener('hashchange', () => applyFilter(filterFromHash()));
+</script>

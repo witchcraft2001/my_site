@@ -1,0 +1,11 @@
+{
+  "site.home.newsTitle": "Новости",
+  "site.home.newsMore": "Все новости",
+  "site.apps.title": "Приложения",
+  "site.apps.filterAll": "Все",
+  "site.apps.download": "Скачать",
+  "site.apps.source": "Исходный код",
+  "site.apps.version": "Версия",
+  "site.apps.notTranslated": "Страница ещё не переведена, показан текст на русском.",
+  "site.docs.title": "Документация"
+}

@@ -1,0 +1,11 @@
+{
+  "site.home.newsTitle": "News",
+  "site.home.newsMore": "All news",
+  "site.apps.title": "Apps",
+  "site.apps.filterAll": "All",
+  "site.apps.download": "Download",
+  "site.apps.source": "Source code",
+  "site.apps.version": "Version",
+  "site.apps.notTranslated": "This page hasn't been translated yet, showing the Russian text.",
+  "site.docs.title": "Documentation"
+}

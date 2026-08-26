@@ -1,0 +1,88 @@
+---
+import { Badge, LinkButton } from '@astrojs/starlight/components';
+import type { CollectionEntry } from 'astro:content';
+import { localePath, type Locale } from '../lib/i18n';
+
+interface Props {
+  app: CollectionEntry<'apps'>;
+  slug: string;
+  locale: Locale;
+  t: (key: string) => string;
+}
+
+const { app, slug, locale, t } = Astro.props;
+const { name, summary, platform, version, download, github } = app.data;
+const platformLabel = platform === 'android' ? 'Android' : 'Sprinter';
+---
+
+<article class="app-card" data-platform={platform}>
+  <div class="app-card-header">
+    <h3><a href={localePath(locale, `apps/${slug}/`)}>{name}</a></h3>
+    <Badge text={platformLabel} variant="note" />
+  </div>
+  <p>{summary}</p>
+  <div class="app-card-footer">
+    {version && <span class="version">{t('site.apps.version')}: {version}</span>}
+    <div class="app-card-actions">
+      {download && (
+        <LinkButton href={download} variant="primary" icon="download">
+          {t('site.apps.download')}
+        </LinkButton>
+      )}
+      {github && (
+        <LinkButton href={github} variant="minimal" icon="github">
+          {t('site.apps.source')}
+        </LinkButton>
+      )}
+    </div>
+  </div>
+</article>
+
+<style>
+  .app-card {
+    border: 1px solid var(--sl-color-hairline);
+    border-radius: 0.5rem;
+    padding: 1rem 1.25rem;
+    background: var(--sl-color-bg-nav);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .app-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .app-card-header h3 {
+    margin: 0;
+    font-size: var(--sl-text-lg);
+  }
+  .app-card-header a {
+    color: var(--sl-color-white);
+    text-decoration: none;
+  }
+  .app-card-header a:hover {
+    color: var(--sl-color-accent);
+  }
+  .app-card p {
+    margin: 0;
+    color: var(--sl-color-gray-2);
+  }
+  .app-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+  }
+  .version {
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-3);
+  }
+  .app-card-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+</style>

@@ -1,0 +1,64 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import { Badge, LinkButton } from '@astrojs/starlight/components';
+import { getEntry, render } from 'astro:content';
+import { localizedEntries } from '../../lib/collections';
+import type { Locale } from '../../lib/i18n';
+
+interface Props {
+  locale: Locale;
+  slug: string;
+}
+
+const { locale, slug } = Astro.props;
+
+const i18nEntry = await getEntry('i18n', locale);
+const t = (key: string) => (i18nEntry?.data as Record<string, string> | undefined)?.[key] ?? key;
+
+const all = await localizedEntries('apps', locale);
+const found = all.find((a) => a.slug === slug);
+if (!found) throw new Error(`App not found: ${slug}`);
+const { entry, isFallback } = found;
+const { name, summary, platform, version, download, github } = entry.data;
+const platformLabel = platform === 'android' ? 'Android' : 'Sprinter';
+const { Content } = await render(entry);
+---
+
+<StarlightPage frontmatter={{ title: name, description: summary }} isFallback={isFallback}>
+  <div class="app-detail-meta">
+    <Badge text={platformLabel} variant="note" />
+    {version && <span class="version">{t('site.apps.version')}: {version}</span>}
+  </div>
+  <div class="app-detail-actions">
+    {download && (
+      <LinkButton href={download} variant="primary" icon="download">
+        {t('site.apps.download')}
+      </LinkButton>
+    )}
+    {github && (
+      <LinkButton href={github} variant="minimal" icon="github">
+        {t('site.apps.source')}
+      </LinkButton>
+    )}
+  </div>
+  <Content />
+</StarlightPage>
+
+<style>
+  .app-detail-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+  .version {
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-3);
+  }
+  .app-detail-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+</style>
