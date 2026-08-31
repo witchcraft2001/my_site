@@ -48,6 +48,10 @@ const platformLabel = platform === 'android' ? 'Android' : 'Sprinter';
     flex-direction: column;
     gap: 0.5rem;
   }
+  /* `display: flex` above outranks the UA rule for [hidden], so restate it here. */
+  .app-card[hidden] {
+    display: none;
+  }
   .app-card-header {
     display: flex;
     align-items: center;

@@ -18,14 +18,18 @@ const apps = (await localizedEntries('apps', locale)).sort((a, b) =>
   a.entry.data.name.localeCompare(b.entry.data.name, locale, { sensitivity: 'base' }),
 );
 
-const platforms = ['android', 'sprinter'] as const;
-const counts = Object.fromEntries(
-  platforms.map((p) => [p, apps.filter(({ entry }) => entry.data.platform === p).length]),
-);
-const platformLabels: Record<(typeof platforms)[number], string> = {
+const PLATFORMS = ['android', 'sprinter'] as const;
+const platformLabels: Record<(typeof PLATFORMS)[number], string> = {
   android: 'Android',
   sprinter: 'Sprinter',
 };
+
+// A chip per platform that actually has apps — no dead "Android 0" filter.
+const platformChips = PLATFORMS.map((platform) => ({
+  platform,
+  label: platformLabels[platform],
+  count: apps.filter(({ entry }) => entry.data.platform === platform).length,
+})).filter(({ count }) => count > 0);
 
 const title = t('site.apps.title');
 ---
@@ -36,9 +40,9 @@ const title = t('site.apps.title');
       {t('site.apps.filterAll')} <span class="count">{apps.length}</span>
     </button>
     {
-      platforms.map((p) => (
-        <button type="button" class="chip" data-filter={p} aria-pressed="false">
-          {platformLabels[p]} <span class="count">{counts[p]}</span>
+      platformChips.map(({ platform, label, count }) => (
+        <button type="button" class="chip" data-filter={platform} aria-pressed="false">
+          {label} <span class="count">{count}</span>
         </button>
       ))
     }
