@@ -14,8 +14,8 @@ const { locale } = Astro.props;
 const i18nEntry = await getEntry('i18n', locale);
 const t = (key: string) => (i18nEntry?.data as Record<string, string> | undefined)?.[key] ?? key;
 
-const apps = (await localizedEntries('apps', locale)).sort(
-  (a, b) => a.entry.data.order - b.entry.data.order || a.entry.data.name.localeCompare(b.entry.data.name),
+const apps = (await localizedEntries('apps', locale)).sort((a, b) =>
+  a.entry.data.name.localeCompare(b.entry.data.name, locale, { sensitivity: 'base' }),
 );
 
 const platforms = ['android', 'sprinter'] as const;
